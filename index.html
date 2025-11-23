@@ -17,17 +17,48 @@
             min-height: 100vh;
             padding: 20px;
         }
-        
-        #root {
+
+        /* Admin Button */
+        .admin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .admin-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: translateY(-2px);
+        }
+
+        /* Public View */
+        .public-view {
             max-width: 800px;
             margin: 0 auto;
         }
-        
+
+        .public-view.hidden {
+            display: none;
+        }
+
         .container {
             background: white;
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
         }
         
         h1 {
@@ -73,7 +104,7 @@
             font-family: inherit;
         }
         
-        button {
+        button.btn-submit {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 14px 30px;
@@ -86,11 +117,11 @@
             transition: transform 0.2s;
         }
         
-        button:hover {
+        button.btn-submit:hover {
             transform: translateY(-2px);
         }
         
-        button:disabled {
+        button.btn-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
@@ -136,39 +167,471 @@
             padding: 40px;
             font-style: italic;
         }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
         
-        .loading {
-            text-align: center;
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Admin View */
+        .admin-view {
+            display: none;
+            background: #f5f5f5;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .admin-view.active {
+            display: block;
+        }
+
+        .admin-header {
+            background: white;
             padding: 20px;
-            color: #667eea;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 8px;
+
+        .admin-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .admin-header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-header-left h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .admin-header-right {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .admin-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .stats-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-        
-        .success {
-            background: #efe;
-            color: #3c3;
-            padding: 15px;
+
+        .stats-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .comments-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .comments-header {
+            padding: 20px 25px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .comments-list {
+            padding: 25px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .comment-time {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .comment-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
             border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-icon {
+            padding: 10px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .modal-header p {
+            color: #666;
+            font-size: 0.9em;
             margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .qr-container {
+            text-align: center;
+        }
+
+        .qr-code {
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        /* Login Modal */
+        .login-modal .modal-content {
+            max-width: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .admin-header-content {
+                flex-direction: column;
+            }
+
+            .admin-header-right {
+                width: 100%;
+            }
+
+            .admin-header-right .btn {
+                flex: 1;
+            }
+
+            .comment-item {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <!-- Admin Button (Always visible) -->
+    <button class="admin-btn" onclick="showAdminLogin()">
+        🔒 Admin
+    </button>
 
-    <!-- Firebase SDK -->
+    <!-- Public View -->
+    <div id="publicView" class="public-view">
+        <div class="container">
+            <h1>💬 Deja tu comentario</h1>
+            <p class="subtitle">Comparte tus ideas, preguntas o sugerencias</p>
+
+            <div id="publicMessage"></div>
+
+            <form id="commentForm">
+                <div class="form-group">
+                    <label for="nombre">Tu nombre</label>
+                    <input
+                        id="nombre"
+                        type="text"
+                        placeholder="Ingresa tu nombre"
+                        required
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="comentario">Tu comentario o pregunta</label>
+                    <textarea
+                        id="comentario"
+                        placeholder="Escribe tu mensaje aquí..."
+                        required
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    Enviar comentario
+                </button>
+            </form>
+
+            <div class="comments-section">
+                <h2 class="comments-title">
+                    👁️ Comentarios de tus compañeros (<span id="publicCommentCount">0</span>)
+                </h2>
+
+                <div id="publicComments">
+                    <div class="no-comments">Cargando comentarios...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin View -->
+    <div id="adminView" class="admin-view">
+        <div class="admin-header">
+            <div class="admin-header-content">
+                <div class="admin-header-left">
+                    <button class="btn btn-secondary" onclick="closeAdmin()">
+                        ← Salir
+                    </button>
+                    <h2>⚙️ Panel de Administración</h2>
+                </div>
+                <div class="admin-header-right">
+                    <button class="btn btn-warning" onclick="showChangePasswordModal()">
+                        🔒 Cambiar Contraseña
+                    </button>
+                    <button class="btn btn-primary" onclick="showQRModal()">
+                        📱 Mostrar QR
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-content">
+            <div id="adminMessage"></div>
+
+            <div class="stats-section">
+                <div class="stats-title">💬 Comentarios en tiempo real (<span id="adminCommentCount">0</span>)</div>
+            </div>
+
+            <div class="comments-container">
+                <div class="comments-header">
+                    <h3 style="color: #333;">Todos los comentarios</h3>
+                    <button class="btn btn-danger" onclick="deleteAllComments()">
+                        🗑️ Limpiar Todo
+                    </button>
+                </div>
+                <div class="comments-list" id="adminComments">
+                    <div class="no-comments">Cargando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔒 Acceso de Administrador</h3>
+                <p>Ingresa la contraseña para continuar</p>
+            </div>
+            <div id="loginMessage"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="adminPassword">Contraseña</label>
+                    <input 
+                        type="password" 
+                        id="adminPassword" 
+                        placeholder="Ingresa tu contraseña"
+                        required
+                    />
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Ingresar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeLoginModal()">Cancelar</button>
+                </div>
+            </form>
+            <p style="margin-top: 15px; font-size: 0.85em; color: #666; text-align: center;">
+                Contraseña por defecto: <strong>admin123</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔒 Cambiar Contraseña</h3>
+                <p>Establece una nueva contraseña para el panel</p>
+            </div>
+            <div class="form-group">
+                <label for="currentPassword">Contraseña actual</label>
+                <input type="password" id="currentPassword" placeholder="Contraseña actual">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">Nueva contraseña</label>
+                <input type="password" id="newPassword" placeholder="Nueva contraseña">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar contraseña</label>
+                <input type="password" id="confirmPassword" placeholder="Confirmar contraseña">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="changePassword()">Cambiar</button>
+                <button class="btn btn-secondary" onclick="closePasswordModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📱 Código QR</h3>
+                <p>Escanea para acceder al sistema de comentarios</p>
+            </div>
+            <div class="qr-container">
+                <div id="qrcode" class="qr-code"></div>
+                <p style="color: #666; margin-top: 15px; word-break: break-all;">
+                    <strong id="currentUrl"></strong>
+                </p>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="closeQRModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: #dc3545;">⚠️ Confirmar Eliminación</h3>
+                <p id="deleteMessage">¿Estás seguro?</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" onclick="confirmDelete()">Sí, Eliminar</button>
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
         const firebaseConfig = {
             apiKey: "AIzaSyCI8STxZ_k-OlBH9HCa8rRMoRwrH_9sTg",
             authDomain: "trabajo-colaborativo-281ab.firebaseapp.com",
@@ -178,150 +641,301 @@
             appId: "1:213358663306:web:681024d9135d4fffb3ff73"
         };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Aplicación React
-        const { useState, useEffect } = React;
+        let allComments = [];
+        let commentToDelete = null;
+        const DEFAULT_PASSWORD = 'admin123';
+        let adminPassword = localStorage.getItem('adminPassword') || DEFAULT_PASSWORD;
 
-        function App() {
-            const [nombre, setNombre] = useState('');
-            const [comentario, setComentario] = useState('');
-            const [comentarios, setComentarios] = useState([]);
-            const [loading, setLoading] = useState(false);
-            const [message, setMessage] = useState({ type: '', text: '' });
+        // Load comments for public view
+        const q = query(collection(db, "comentarios"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            allComments = [];
+            snapshot.forEach((docSnap) => {
+                allComments.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            
+            displayPublicComments();
+            displayAdminComments();
+        });
 
-            // Cargar comentarios en tiempo real
-            useEffect(() => {
-                const q = query(collection(db, "comentarios"), orderBy("timestamp", "desc"));
-                
-                const unsubscribe = onSnapshot(q, (snapshot) => {
-                    const commentsData = [];
-                    snapshot.forEach((doc) => {
-                        commentsData.push({ id: doc.id, ...doc.data() });
-                    });
-                    setComentarios(commentsData);
+        // Public view - Submit comment
+        document.getElementById('commentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nombre = document.getElementById('nombre').value.trim();
+            const comentario = document.getElementById('comentario').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (!nombre || !comentario) {
+                showPublicMessage('Por favor completa todos los campos', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+
+            try {
+                await addDoc(collection(db, "comentarios"), {
+                    nombre,
+                    comentario,
+                    timestamp: new Date()
                 });
 
-                return () => unsubscribe();
-            }, []);
+                showPublicMessage('¡Comentario enviado con éxito!', 'success');
+                document.getElementById('nombre').value = '';
+                document.getElementById('comentario').value = '';
+            } catch (error) {
+                console.error("Error:", error);
+                showPublicMessage('Error al enviar: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar comentario';
+            }
+        });
 
-            // Enviar comentario
-            const enviarComentario = async (e) => {
-                e.preventDefault();
-                
-                if (!nombre.trim() || !comentario.trim()) {
-                    setMessage({ type: 'error', text: 'Por favor completa todos los campos' });
-                    return;
-                }
-
-                setLoading(true);
-                setMessage({ type: '', text: '' });
-
-                try {
-                    await addDoc(collection(db, "comentarios"), {
-                        nombre: nombre.trim(),
-                        comentario: comentario.trim(),
-                        timestamp: new Date()
-                    });
-
-                    setMessage({ type: 'success', text: '¡Comentario enviado con éxito!' });
-                    setNombre('');
-                    setComentario('');
-                } catch (error) {
-                    console.error("Error al enviar comentario:", error);
-                    setMessage({ type: 'error', text: 'Error al enviar el comentario. Intenta nuevamente.' });
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            // Formatear fecha
-            const formatearFecha = (timestamp) => {
-                if (!timestamp) return '';
-                const fecha = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-                return fecha.toLocaleString('es-ES', {
+        // Display public comments
+        function displayPublicComments() {
+            const container = document.getElementById('publicComments');
+            document.getElementById('publicCommentCount').textContent = allComments.length;
+            
+            if (allComments.length === 0) {
+                container.innerHTML = '<div class="no-comments">No hay comentarios todavía. ¡Sé el primero en comentar!</div>';
+                return;
+            }
+            
+            let html = '';
+            allComments.forEach(comment => {
+                const date = comment.timestamp?.toDate ? comment.timestamp.toDate() : new Date(comment.timestamp);
+                const formattedDate = date.toLocaleString('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
                 });
-            };
-
-            return (
-                <div className="container">
-                    <h1>💬 Deja tu comentario</h1>
-                    <p className="subtitle">Comparte tus ideas, preguntas o sugerencias</p>
-
-                    {message.text && (
-                        <div className={message.type}>
-                            {message.text}
-                        </div>
-                    )}
-
-                    <form onSubmit={enviarComentario}>
-                        <div className="form-group">
-                            <label htmlFor="nombre">Tu nombre</label>
-                            <input
-                                id="nombre"
-                                type="text"
-                                value={nombre}
-                                onChange={(e) => setNombre(e.target.value)}
-                                placeholder="Ingresa tu nombre"
-                                disabled={loading}
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="comentario">Tu comentario o pregunta</label>
-                            <textarea
-                                id="comentario"
-                                value={comentario}
-                                onChange={(e) => setComentario(e.target.value)}
-                                placeholder="Escribe tu mensaje aquí..."
-                                disabled={loading}
-                            />
-                        </div>
-
-                        <button type="submit" disabled={loading}>
-                            {loading ? 'Enviando...' : 'Enviar comentario'}
-                        </button>
-                    </form>
-
-                    <div className="comments-section">
-                        <h2 className="comments-title">
-                            👁️ Comentarios de tus compañeros ({comentarios.length})
-                        </h2>
-
-                        {comentarios.length === 0 ? (
-                            <div className="no-comments">
-                                No hay comentarios todavía. ¡Sé el primero en comentar!
-                            </div>
-                        ) : (
-                            comentarios.map((comment) => (
-                                <div key={comment.id} className="comment-card">
-                                    <div className="comment-author">{comment.nombre}</div>
-                                    <div className="comment-date">
-                                        {formatearFecha(comment.timestamp)}
-                                    </div>
-                                    <div className="comment-text">{comment.comentario}</div>
-                                </div>
-                            ))
-                        )}
+                
+                html += `
+                    <div class="comment-card">
+                        <div class="comment-author">${comment.nombre}</div>
+                        <div class="comment-date">${formattedDate}</div>
+                        <div class="comment-text">${comment.comentario}</div>
                     </div>
-                </div>
-            );
+                `;
+            });
+            
+            container.innerHTML = html;
         }
 
-        // Renderizar la aplicación
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+        // Display admin comments
+        function displayAdminComments() {
+            const container = document.getElementById('adminComments');
+            document.getElementById('adminCommentCount').textContent = allComments.length;
+            
+            if (allComments.length === 0) {
+                container.innerHTML = '<div class="no-comments">No hay comentarios</div>';
+                return;
+            }
+            
+            let html = '';
+            allComments.forEach(comment => {
+                const date = comment.timestamp?.toDate ? comment.timestamp.toDate() : new Date(comment.timestamp);
+                const formattedTime = date.toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const initial = comment.nombre.charAt(0).toUpperCase();
+                
+                html += `
+                    <div class="comment-item">
+                        <div class="comment-avatar">${initial}</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">${comment.nombre}</span>
+                                <span class="comment-time">⏰ ${formattedTime}</span>
+                            </div>
+                            <div class="comment-text">${comment.comentario}</div>
+                        </div>
+                        <div class="comment-actions">
+                            <button class="btn btn-danger btn-icon" onclick="window.deleteComment('${comment.id}')">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
 
-    <!-- React -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+        // Admin login
+        window.showAdminLogin = function() {
+            document.getElementById('loginModal').classList.add('active');
+        };
+
+        window.closeLoginModal = function() {
+            document.getElementById('loginModal').classList.remove('active');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('loginMessage').innerHTML = '';
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === adminPassword) {
+                closeLoginModal();
+                document.getElementById('publicView').classList.add('hidden');
+                document.getElementById('adminView').classList.add('active');
+            } else {
+                showLoginMessage('Contraseña incorrecta', 'error');
+            }
+        });
+
+        window.closeAdmin = function() {
+            document.getElementById('adminView').classList.remove('active');
+            document.getElementById('publicView').classList.remove('hidden');
+        };
+
+        // Delete comment
+        window.deleteComment = function(id) {
+            commentToDelete = id;
+            document.getElementById('deleteMessage').textContent = '¿Estás seguro de eliminar este comentario?';
+            document.getElementById('deleteModal').classList.add('active');
+        };
+
+        window.confirmDelete = async function() {
+            if (!commentToDelete) return;
+            
+            try {
+                await deleteDoc(doc(db, "comentarios", commentToDelete));
+                showAdminMessage('Comentario eliminado', 'success');
+                closeDeleteModal();
+            } catch (error) {
+                showAdminMessage('Error: ' + error.message, 'error');
+            }
+        };
+
+        window.closeDeleteModal = function() {
+            document.getElementById('deleteModal').classList.remove('active');
+            commentToDelete = null;
+        };
+
+        // Delete all comments
+        window.deleteAllComments = async function() {
+            if (!confirm('⚠️ ¿Eliminar TODOS los comentarios?')) return;
+            
+            try {
+                const snapshot = await getDocs(collection(db, "comentarios"));
+                const deletePromises = [];
+                
+                snapshot.forEach((document) => {
+                    deletePromises.push(deleteDoc(doc(db, "comentarios", document.id)));
+                });
+                
+                await Promise.all(deletePromises);
+                showAdminMessage('Todos los comentarios eliminados', 'success');
+            } catch (error) {
+                showAdminMessage('Error: ' + error.message, 'error');
+            }
+        };
+
+        // Change password
+        window.showChangePasswordModal = function() {
+            document.getElementById('passwordModal').classList.add('active');
+        };
+
+        window.closePasswordModal = function() {
+            document.getElementById('passwordModal').classList.remove('active');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        };
+
+        window.changePassword = function() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            
+            if (current !== adminPassword) {
+                showAdminMessage('Contraseña actual incorrecta', 'error');
+                return;
+            }
+            
+            if (newPass.length < 6) {
+                showAdminMessage('La contraseña debe tener al menos 6 caracteres', 'error');
+                return;
+            }
+            
+            if (newPass !== confirm) {
+                showAdminMessage('Las contraseñas no coinciden', 'error');
+                return;
+            }
+            
+            adminPassword = newPass;
+            localStorage.setItem('adminPassword', newPass);
+            showAdminMessage('Contraseña cambiada exitosamente', 'success');
+            closePasswordModal();
+        };
+
+        // Show QR
+        window.showQRModal = function() {
+            const url = window.location.href;
+            document.getElementById('currentUrl').textContent = url;
+            
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            
+            new QRCode(qrContainer, {
+                text: url,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            document.getElementById('qrModal').classList.add('active');
+        };
+
+        window.closeQRModal = function() {
+            document.getElementById('qrModal').classList.remove('active');
+        };
+
+        // Message functions
+        function showPublicMessage(text, type) {
+            const messageDiv = document.getElementById('publicMessage');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            setTimeout(() => {
+                messageDiv.className = '';
+                messageDiv.textContent = '';
+            }, 5000);
+        }
+
+        function showAdminMessage(text, type) {
+            const messageDiv = document.getElementById('adminMessage');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            setTimeout(() => {
+                messageDiv.className = '';
+                messageDiv.textContent = '';
+            }, 5000);
+        }
+
+        function showLoginMessage(text, type) {
+            const messageDiv = document.getElementById('loginMessage');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            setTimeout(() => {
+                messageDiv.className = '';
+                messageDiv.textContent = '';
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
