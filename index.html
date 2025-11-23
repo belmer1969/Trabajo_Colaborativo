@@ -12,8 +12,34 @@
 <body>
     <div id="root"></div>
 
+    <script type="module">
+        // Importar Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJ8STxZ_k-OIBH9HCa8rfMoRwrIH_9STg",
+            authDomain: "trabajo-colaborativo-281ab.firebaseapp.com",
+            projectId: "trabajo-colaborativo-281ab",
+            storageBucket: "trabajo-colaborativo-281ab.firebasestorage.app",
+            messagingSenderId: "213358663306",
+            appId: "1:213358663306:web:681024d9135d4fffb3ff73"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Hacer disponible globalmente para React
+        window.firebaseDb = db;
+        window.firebaseModules = { collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query };
+    </script>
+
     <script type="text/babel">
         const { useState, useEffect } = React;
+        const { collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query } = window.firebaseModules;
+        const db = window.firebaseDb;
 
         // Iconos SVG
         const MessageSquare = ({ className }) => (
@@ -72,27 +98,6 @@
             </svg>
         );
 
-        // Sistema de almacenamiento en localStorage
-        const storage = {
-            get: (key) => {
-                try {
-                    const item = localStorage.getItem(key);
-                    return item ? JSON.parse(item) : null;
-                } catch (e) {
-                    return null;
-                }
-            },
-            set: (key, value) => {
-                try {
-                    localStorage.setItem(key, JSON.stringify(value));
-                    window.dispatchEvent(new Event('storage-update'));
-                    return true;
-                } catch (e) {
-                    return false;
-                }
-            }
-        };
-
         function AuditoriumComments() {
             const [view, setView] = useState('student');
             const [comments, setComments] = useState([]);
@@ -102,77 +107,79 @@
             const [adminPassword, setAdminPassword] = useState('');
             const [isAdmin, setIsAdmin] = useState(false);
             const [showPassword, setShowPassword] = useState(false);
-            const [config, setConfig] = useState({ password: 'admin123' });
+            const [loading, setLoading] = useState(false);
 
+            // Escuchar comentarios en tiempo real desde Firebase
             useEffect(() => {
-                loadComments();
-                loadConfig();
+                const q = query(collection(db, "comments"), orderBy("timestamp", "asc"));
                 
-                const handleStorageUpdate = () => {
-                    loadComments();
-                };
-                
-                window.addEventListener('storage-update', handleStorageUpdate);
-                const interval = setInterval(loadComments, 2000);
-                
-                return () => {
-                    window.removeEventListener('storage-update', handleStorageUpdate);
-                    clearInterval(interval);
-                };
+                const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                    const commentsData = [];
+                    querySnapshot.forEach((doc) => {
+                        commentsData.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                    setComments(commentsData);
+                });
+
+                return () => unsubscribe();
             }, []);
 
-            const loadConfig = () => {
-                const stored = storage.get('auditorium-config');
-                if (stored) {
-                    setConfig(stored);
-                }
-            };
-
-            const saveConfig = (newConfig) => {
-                storage.set('auditorium-config', newConfig);
-                setConfig(newConfig);
-            };
-
-            const loadComments = () => {
-                const stored = storage.get('auditorium-comments');
-                if (stored) {
-                    setComments(stored);
-                }
-            };
-
-            const saveComments = (updatedComments) => {
-                storage.set('auditorium-comments', updatedComments);
-                setComments(updatedComments);
-            };
-
-            const addComment = () => {
+            const addComment = async () => {
                 if (!newComment.trim() || !studentName.trim()) return;
 
-                const comment = {
-                    id: Date.now(),
-                    text: newComment,
-                    author: studentName,
-                    timestamp: new Date().toISOString(),
-                };
-
-                const updatedComments = [...comments, comment];
-                saveComments(updatedComments);
-                setNewComment('');
+                setLoading(true);
+                try {
+                    await addDoc(collection(db, "comments"), {
+                        text: newComment,
+                        author: studentName,
+                        timestamp: new Date()
+                    });
+                    
+                    setNewComment('');
+                    alert('¡Comentario enviado exitosamente!');
+                } catch (error) {
+                    console.error("Error al agregar comentario:", error);
+                    alert('Error al enviar el comentario. Intenta nuevamente.');
+                } finally {
+                    setLoading(false);
+                }
             };
 
-            const deleteComment = (id) => {
-                const updatedComments = comments.filter(c => c.id !== id);
-                saveComments(updatedComments);
+            const deleteComment = async (id) => {
+                try {
+                    await deleteDoc(doc(db, "comments", id));
+                } catch (error) {
+                    console.error("Error al eliminar comentario:", error);
+                    alert('Error al eliminar el comentario.');
+                }
             };
 
-            const clearAllComments = () => {
-                if (window.confirm('¿Estás seguro de que quieres eliminar todos los comentarios?')) {
-                    saveComments([]);
+            const clearAllComments = async () => {
+                if (!window.confirm('¿Estás seguro de que quieres eliminar todos los comentarios?')) {
+                    return;
+                }
+
+                try {
+                    const querySnapshot = await getDocs(collection(db, "comments"));
+                    const deletePromises = [];
+                    
+                    querySnapshot.forEach((document) => {
+                        deletePromises.push(deleteDoc(doc(db, "comments", document.id)));
+                    });
+                    
+                    await Promise.all(deletePromises);
+                    alert('Todos los comentarios han sido eliminados');
+                } catch (error) {
+                    console.error("Error al limpiar comentarios:", error);
+                    alert('Error al eliminar los comentarios.');
                 }
             };
 
             const handleAdminLogin = () => {
-                if (adminPassword === config.password) {
+                if (adminPassword === 'admin123') {
                     setIsAdmin(true);
                     setView('admin');
                     setAdminPassword('');
@@ -186,16 +193,9 @@
                 setView('student');
             };
 
-            const changePassword = () => {
-                const newPassword = prompt('Ingresa la nueva contraseña de administrador:');
-                if (newPassword && newPassword.trim()) {
-                    saveConfig({ ...config, password: newPassword.trim() });
-                    alert('Contraseña actualizada exitosamente');
-                }
-            };
-
             const formatTime = (timestamp) => {
-                const date = new Date(timestamp);
+                if (!timestamp) return '';
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
                 return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             };
 
@@ -251,10 +251,10 @@
 
                                     <button
                                         onClick={addComment}
-                                        disabled={!newComment.trim() || !studentName.trim()}
+                                        disabled={!newComment.trim() || !studentName.trim() || loading}
                                         className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
                                     >
-                                        Enviar Comentario
+                                        {loading ? 'Enviando...' : 'Enviar Comentario'}
                                     </button>
                                 </div>
                             </div>
@@ -370,22 +370,13 @@
                                         </h1>
                                     </div>
                                     
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={changePassword}
-                                            className="bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-700 transition flex items-center gap-2"
-                                        >
-                                            <Lock className="w-4 h-4" />
-                                            Cambiar Contraseña
-                                        </button>
-                                        <button
-                                            onClick={() => setShowQR(!showQR)}
-                                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center gap-2"
-                                        >
-                                            <QrCode className="w-5 h-5" />
-                                            {showQR ? 'Ocultar QR' : 'Mostrar QR'}
-                                        </button>
-                                    </div>
+                                    <button
+                                        onClick={() => setShowQR(!showQR)}
+                                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center gap-2"
+                                    >
+                                        <QrCode className="w-5 h-5" />
+                                        {showQR ? 'Ocultar QR' : 'Mostrar QR'}
+                                    </button>
                                 </div>
 
                                 {showQR && (
@@ -405,9 +396,6 @@
                                                 {currentUrl}
                                             </p>
                                         </div>
-                                        <p className="text-sm text-gray-600 mt-3">
-                                            Los estudiantes escanean el QR y acceden directamente a la vista de estudiante
-                                        </p>
                                     </div>
                                 )}
 
@@ -436,7 +424,7 @@
                                             No hay comentarios todavía
                                         </p>
                                         <p className="text-gray-400 text-sm mt-2">
-                                            Los comentarios aparecerán aquí en tiempo real cuando los estudiantes los envíen
+                                            Los comentarios aparecerán aquí en tiempo real
                                         </p>
                                     </div>
                                 ) : (
